@@ -12,6 +12,7 @@
 #import <AssetsLibrary/AssetsLibrary.h>
 #import "MWPhoto.h"
 #import "MWPhotoBrowser.h"
+@import ImageIO;
 
 @interface MWPhoto () {
 
@@ -190,8 +191,12 @@
             
         } else {
             
+            // Load from local file async
+            [self _performLoadUnderlyingImageAndNotifyWithLocalFileURL: _photoURL];
+
+            
             // Load async from web (using SDWebImage)
-            [self _performLoadUnderlyingImageAndNotifyWithWebURL: _photoURL];
+            //[self _performLoadUnderlyingImageAndNotifyWithWebURL: _photoURL];
             
         }
         
@@ -245,7 +250,34 @@
     dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
         @autoreleasepool {
             @try {
-                self.underlyingImage = [UIImage imageWithContentsOfFile:url.path];
+                
+                CGImageSourceRef imageSource = CGImageSourceCreateWithURL((__bridge CFURLRef)(url), NULL);
+                CGFloat scale = [UIScreen mainScreen].scale;
+                CGFloat w = 70 * scale;
+                
+                CFDictionaryRef options = (__bridge CFDictionaryRef)[NSDictionary dictionaryWithObjectsAndKeys:
+                                                            (id)kCFBooleanTrue, (id)kCGImageSourceCreateThumbnailWithTransform,
+                                                            (id)kCFBooleanTrue, (id)kCGImageSourceCreateThumbnailFromImageIfAbsent,
+                                                            (id)@(w), (id)kCGImageSourceThumbnailMaxPixelSize,
+                                                            nil];
+        
+                if(imageSource){
+                
+                    CGImageRef imgRef = CGImageSourceCreateThumbnailAtIndex(imageSource,  0, options);
+                    
+                    UIImage* scaled = [UIImage imageWithCGImage:imgRef];
+                    
+                    CGImageRelease(imgRef);
+                    CFRelease(imageSource);
+                    
+                    self.underlyingImage = scaled;
+                
+                }else{
+                
+                    self.underlyingImage = nil;
+                
+                }
+                
                 if (!_underlyingImage) {
                     MWLog(@"Error loading photo from path: %@", url.path);
                 }

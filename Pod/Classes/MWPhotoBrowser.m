@@ -247,6 +247,7 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     } else {
         [items addObject:fixedSpace];
     }
+    
 
     // Middle - Nav
     if (_previousButton && _nextButton && numberOfPhotos > 1) {
@@ -281,6 +282,12 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
     }
     if (hideToolbar) {
         [_toolbar removeFromSuperview];
+    } else {
+        [self.view addSubview:_toolbar];
+    }
+    
+    if (_gridController) {
+        [self.view insertSubview:_toolbar belowSubview:_gridController.view];
     } else {
         [self.view addSubview:_toolbar];
     }
@@ -835,7 +842,7 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
             }
             
             // Add selected button
-            if (self.displaySelectionButtons) {
+            /*if (self.displaySelectionButtons) {
                 UIButton *selectedButton = [UIButton buttonWithType:UIButtonTypeCustom];
                 [selectedButton setImage:[UIImage imageForResourcePath:@"MWPhotoBrowser.bundle/ImageSelectedOff" ofType:@"png" inBundle:[NSBundle bundleForClass:[self class]]] forState:UIControlStateNormal];
                 UIImage *selectedOnImage;
@@ -852,7 +859,7 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
                 [_pagingScrollView addSubview:selectedButton];
                 page.selectedButton = selectedButton;
                 selectedButton.selected = [self photoIsSelectedAtIndex:index];
-            }
+            }*/\
             
 		}
 	}
@@ -1082,17 +1089,13 @@ static void * MWVideoPlayerObservation = &MWVideoPlayerObservation;
 	// Title
     NSUInteger numberOfPhotos = [self numberOfPhotos];
     if (_gridController) {
-        if (_gridController.selectionMode) {
-            self.title = NSLocalizedString(@"Select Photos", nil);
+        NSString *photosText;
+        if (numberOfPhotos == 1) {
+            photosText = NSLocalizedString(@"photo", @"Used in the context: '1 photo'");
         } else {
-            NSString *photosText;
-            if (numberOfPhotos == 1) {
-                photosText = NSLocalizedString(@"photo", @"Used in the context: '1 photo'");
-            } else {
-                photosText = NSLocalizedString(@"photos", @"Used in the context: '3 photos'");
-            }
-            self.title = [NSString stringWithFormat:@"%lu %@", (unsigned long)numberOfPhotos, photosText];
+            photosText = NSLocalizedString(@"photos", @"Used in the context: '3 photos'");
         }
+        self.title = [NSString stringWithFormat:@"%lu %@", (unsigned long)numberOfPhotos, photosText];
     } else if (numberOfPhotos > 1) {
         if ([_delegate respondsToSelector:@selector(photoBrowser:titleForPhotoAtIndex:)]) {
             self.title = [_delegate photoBrowser:self titleForPhotoAtIndex:_currentPageIndex];

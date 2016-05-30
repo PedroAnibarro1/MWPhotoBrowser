@@ -172,8 +172,30 @@
 }
 
 - (void)collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath {
-    [_browser setCurrentPhotoIndex:indexPath.row];
-    [_browser hideGrid];
+    
+    MWGridCell *cell = [collectionView cellForItemAtIndexPath: indexPath];
+    
+    if(_browser.editing){
+        
+        if(cell.isSelected){
+        
+            cell.isSelected = false;
+            [_browser setPhotoSelected: false atIndex: indexPath.row];
+        
+        }else{
+        
+            cell.isSelected = true;
+            [_browser setPhotoSelected: true atIndex: indexPath.row];
+        
+        }
+    
+    }else{
+    
+        [_browser setCurrentPhotoIndex:indexPath.row];
+        [_browser hideGrid];
+    
+    }
+    
 }
 
 - (void)collectionView:(UICollectionView *)collectionView didEndDisplayingCell:(UICollectionViewCell *)cell forItemAtIndexPath:(NSIndexPath *)indexPath {
